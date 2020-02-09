@@ -53,32 +53,32 @@
 /**
  * @brief   Driver configuration structure.
  */
-#define onewire_lld_driver_fields                                               \
-  /**                                                                           \
-   * @brief Pointer to @p PWM driver used for communication.                    \
-   */                                                                           \
-  PWMDriver                 *pwmd;                                              \
-   /**                                                                          \
-   * @brief Pointer to configuration structure for underlying PWM driver.       \
-   * @note  It is NOT constant because 1-wire driver needs to change them       \
-   *        during normal functioning.                                          \
-   */                                                                           \
-  PWMConfig                 *pwmcfg;                                            \
-  /**                                                                           \
-   * @brief   Active logic level for master channel.                            \
-   * @details Just set it to @p PWM_OUTPUT_ACTIVE_LOW when 1-wire bus           \
-   *          connected to direct (not complementary) output of the timer.      \
-   *          In opposite case you need to check documentation to choose        \
-   *          correct value.                                                    \
-   */                                                                           \
-  pwmmode_t                 pwmmode;                                            \
-  /**                                                                           \
-   * @brief Number of PWM channel used as master pulse generator.               \
-   */                                                                           \
-  size_t                    master_channel;                                     \
-  /**                                                                           \
-   * @brief Number of PWM channel used as sample interrupt generator.           \
-   */                                                                           \
+#define onewire_lld_driver_fields                                             \
+  /**                                                                         \
+   * @brief Pointer to @p PWM driver used for communication.                  \
+   */                                                                         \
+  PWMDriver                 *pwmd;                                            \
+   /**                                                                        \
+   * @brief Pointer to configuration structure for underlying PWM driver.     \
+   * @note  It is NOT constant because 1-wire driver needs to change them     \
+   *        during normal functioning.                                        \
+   */                                                                         \
+  PWMConfig                 *pwmcfg;                                          \
+  /**                                                                         \
+   * @brief   Active logic level for master channel.                          \
+   * @details Just set it to @p PWM_OUTPUT_ACTIVE_LOW when 1-wire bus         \
+   *          connected to direct (not complementary) output of the timer.    \
+   *          In opposite case you need to check documentation to choose      \
+   *          correct value.                                                  \
+   */                                                                         \
+  pwmmode_t                 pwmmode;                                          \
+  /**                                                                         \
+   * @brief Number of PWM channel used as master pulse generator.             \
+   */                                                                         \
+  size_t                    master_channel;                                   \
+  /**                                                                         \
+   * @brief Number of PWM channel used as sample interrupt generator.         \
+   */                                                                         \
   size_t                    sample_channel
 
 /*===========================================================================*/
