@@ -98,51 +98,6 @@ static void pwm_search_rom_cb(PWMDriver *pwmp);
 /*===========================================================================*/
 /* Driver exported variables.                                                */
 /*===========================================================================*/
-// /**
-//  * @brief 1-wire driver identifier.
-//  */
-// onewireDriver OWD1;
-
-/*===========================================================================*/
-/* Driver local variables and types.                                         */
-/*===========================================================================*/
-// /**
-//  * @brief     Look up table for fast 1-wire CRC calculation
-//  */
-// static const uint8_t onewire_crc_table[256] = {
-//     0x0,  0x5e, 0xbc, 0xe2, 0x61, 0x3f, 0xdd, 0x83,
-//     0xc2, 0x9c, 0x7e, 0x20, 0xa3, 0xfd, 0x1f, 0x41,
-//     0x9d, 0xc3, 0x21, 0x7f, 0xfc, 0xa2, 0x40, 0x1e,
-//     0x5f, 0x1,  0xe3, 0xbd, 0x3e, 0x60, 0x82, 0xdc,
-//     0x23, 0x7d, 0x9f, 0xc1, 0x42, 0x1c, 0xfe, 0xa0,
-//     0xe1, 0xbf, 0x5d, 0x3,  0x80, 0xde, 0x3c, 0x62,
-//     0xbe, 0xe0, 0x2,  0x5c, 0xdf, 0x81, 0x63, 0x3d,
-//     0x7c, 0x22, 0xc0, 0x9e, 0x1d, 0x43, 0xa1, 0xff,
-//     0x46, 0x18, 0xfa, 0xa4, 0x27, 0x79, 0x9b, 0xc5,
-//     0x84, 0xda, 0x38, 0x66, 0xe5, 0xbb, 0x59, 0x7,
-//     0xdb, 0x85, 0x67, 0x39, 0xba, 0xe4, 0x6,  0x58,
-//     0x19, 0x47, 0xa5, 0xfb, 0x78, 0x26, 0xc4, 0x9a,
-//     0x65, 0x3b, 0xd9, 0x87, 0x4,  0x5a, 0xb8, 0xe6,
-//     0xa7, 0xf9, 0x1b, 0x45, 0xc6, 0x98, 0x7a, 0x24,
-//     0xf8, 0xa6, 0x44, 0x1a, 0x99, 0xc7, 0x25, 0x7b,
-//     0x3a, 0x64, 0x86, 0xd8, 0x5b, 0x5,  0xe7, 0xb9,
-//     0x8c, 0xd2, 0x30, 0x6e, 0xed, 0xb3, 0x51, 0xf,
-//     0x4e, 0x10, 0xf2, 0xac, 0x2f, 0x71, 0x93, 0xcd,
-//     0x11, 0x4f, 0xad, 0xf3, 0x70, 0x2e, 0xcc, 0x92,
-//     0xd3, 0x8d, 0x6f, 0x31, 0xb2, 0xec, 0xe,  0x50,
-//     0xaf, 0xf1, 0x13, 0x4d, 0xce, 0x90, 0x72, 0x2c,
-//     0x6d, 0x33, 0xd1, 0x8f, 0xc,  0x52, 0xb0, 0xee,
-//     0x32, 0x6c, 0x8e, 0xd0, 0x53, 0xd,  0xef, 0xb1,
-//     0xf0, 0xae, 0x4c, 0x12, 0x91, 0xcf, 0x2d, 0x73,
-//     0xca, 0x94, 0x76, 0x28, 0xab, 0xf5, 0x17, 0x49,
-//     0x8,  0x56, 0xb4, 0xea, 0x69, 0x37, 0xd5, 0x8b,
-//     0x57, 0x9,  0xeb, 0xb5, 0x36, 0x68, 0x8a, 0xd4,
-//     0x95, 0xcb, 0x29, 0x77, 0xf4, 0xaa, 0x48, 0x16,
-//     0xe9, 0xb7, 0x55, 0xb,  0x88, 0xd6, 0x34, 0x6a,
-//     0x2b, 0x75, 0x97, 0xc9, 0x4a, 0x14, 0xf6, 0xa8,
-//     0x74, 0x2a, 0xc8, 0x96, 0x15, 0x4b, 0xa9, 0xf7,
-//     0xb6, 0xe8, 0xa,  0x54, 0xd7, 0x89, 0x6b, 0x35
-// };
 
 /*===========================================================================*/
 /* Driver local functions.                                                   */
@@ -536,50 +491,6 @@ static void search_clean_iteration(onewire_search_rom_t *sr) {
 /* Driver exported functions.                                                */
 /*===========================================================================*/
 
-// /**
-//  * @brief   Calculates 1-wire CRC.
-//  *
-//  * @param[in] buf     pointer to the data buffer
-//  * @param[in] len     lenght of data buffer
-//  *
-//  * @init
-//  */
-// uint8_t onewireCRC(const uint8_t *buf, size_t len) {
-//   uint8_t ret = 0;
-//   size_t i;
-
-//   for (i=0; i<len; i++)
-//     ret = onewire_crc_table[ret ^ buf[i]];
-
-//   return ret;
-// }
-
-// /**
-//  * @brief   Initializes @p onewireDriver structure.
-//  *
-//  * @param[out] owp    pointer to the @p onewireDriver object
-//  *
-//  * @init
-//  */
-// void onewireObjectInit(onewireDriver *owp) {
-
-//   osalDbgCheck(NULL != owp);
-
-//   owp->config = NULL;
-//   owp->reg.slave_present = false;
-//   owp->reg.state = ONEWIRE_STOP;
-//   owp->thread = NULL;
-
-//   owp->reg.bytes = 0;
-//   owp->reg.bit = 0;
-//   owp->reg.final_timeslot = false;
-//   owp->buf = NULL;
-
-// #if ONEWIRE_USE_STRONG_PULLUP
-//   owp->reg.need_pullup = false;
-// #endif
-// }
-
 /**
  * @brief   Configures and activates the 1-wire driver.
  *
@@ -590,16 +501,6 @@ static void search_clean_iteration(onewire_search_rom_t *sr) {
  */
 void onewire_lld_start(onewireDriver *owp, const onewireConfig *config) {
 
-  osalDbgCheck((NULL != owp) && (NULL != config));
-  osalDbgAssert(PWM_STOP == config->pwmd->state,
-      "PWM will be started by onewire driver internally");
-  osalDbgAssert(ONEWIRE_STOP == owp->reg.state, "Invalid state");
-#if ONEWIRE_USE_STRONG_PULLUP
-  osalDbgCheck((NULL != config->pullup_assert) &&
-               (NULL != config->pullup_release));
-#endif
-
-  owp->config = config;
   owp->config->pwmcfg->frequency = ONEWIRE_PWM_FREQUENCY;
   owp->config->pwmcfg->period = ONEWIRE_RESET_TOTAL_WIDTH;
 
@@ -608,7 +509,6 @@ void onewire_lld_start(onewireDriver *owp, const onewireConfig *config) {
       owp->config->pad_mode_active);
 #endif
   ow_bus_idle(owp);
-  owp->reg.state = ONEWIRE_READY;
 }
 
 /**
@@ -619,14 +519,8 @@ void onewire_lld_start(onewireDriver *owp, const onewireConfig *config) {
  * @api
  */
 void onewire_lld_stop(onewireDriver *owp) {
-  osalDbgCheck(NULL != owp);
-#if ONEWIRE_USE_STRONG_PULLUP
-  owp->config->pullup_release();
-#endif
   ow_bus_idle(owp);
   pwmStop(owp->config->pwmd);
-  owp->config = NULL;
-  owp->reg.state = ONEWIRE_STOP;
 }
 
 /**
@@ -641,9 +535,6 @@ bool onewire_lld_reset(onewireDriver *owp) {
   PWMDriver *pwmd;
   PWMConfig *pwmcfg;
   size_t mch, sch;
-
-  osalDbgCheck(NULL != owp);
-  osalDbgAssert(owp->reg.state == ONEWIRE_READY, "Invalid state");
 
   /* short circuit on bus or any other device transmit data */
   if (PAL_LOW == ow_read_bit(owp))
@@ -690,23 +581,10 @@ void onewire_lld_read(onewireDriver *owp, uint8_t *rxbuf, size_t rxbytes) {
   PWMConfig *pwmcfg;
   size_t mch, sch;
 
-  osalDbgCheck((NULL != owp) && (NULL != rxbuf));
-  osalDbgCheck((rxbytes > 0) && (rxbytes <= ONEWIRE_MAX_TRANSACTION_LEN));
-  osalDbgAssert(owp->reg.state == ONEWIRE_READY, "Invalid state");
-
-  /* Buffer zeroing. This is important because of driver collects
-     bits using |= operation.*/
-  memset(rxbuf, 0, rxbytes);
-
   pwmd = owp->config->pwmd;
   pwmcfg = owp->config->pwmcfg;
   mch = owp->config->master_channel;
   sch = owp->config->sample_channel;
-
-  owp->reg.bit = 0;
-  owp->reg.final_timeslot = false;
-  owp->buf = rxbuf;
-  owp->reg.bytes = rxbytes;
 
   pwmcfg->period = ONEWIRE_ZERO_WIDTH + ONEWIRE_RECOVERY_WIDTH;
   pwmcfg->callback = NULL;
@@ -741,23 +619,10 @@ void onewire_lld_write(onewireDriver *owp, uint8_t *txbuf,
   PWMConfig *pwmcfg;
   size_t mch, sch;
 
-  osalDbgCheck((NULL != owp) && (NULL != txbuf));
-  osalDbgCheck((txbytes > 0) && (txbytes <= ONEWIRE_MAX_TRANSACTION_LEN));
-  osalDbgAssert(owp->reg.state == ONEWIRE_READY, "Invalid state");
-#if !ONEWIRE_USE_STRONG_PULLUP
-  osalDbgAssert(0 == pullup_time,
-      "Non zero time is valid only when strong pull enabled");
-#endif
-
   pwmd = owp->config->pwmd;
   pwmcfg = owp->config->pwmcfg;
   mch = owp->config->master_channel;
   sch = owp->config->sample_channel;
-
-  owp->buf = txbuf;
-  owp->reg.bit = 0;
-  owp->reg.final_timeslot = false;
-  owp->reg.bytes = txbytes;
 
   pwmcfg->period = ONEWIRE_ZERO_WIDTH + ONEWIRE_RECOVERY_WIDTH;
   pwmcfg->callback = pwm_write_bit_cb;
@@ -765,13 +630,6 @@ void onewire_lld_write(onewireDriver *owp, uint8_t *txbuf,
   pwmcfg->channels[mch].mode = owp->config->pwmmode;
   pwmcfg->channels[sch].callback = NULL;
   pwmcfg->channels[sch].mode = PWM_OUTPUT_DISABLED;
-
-#if ONEWIRE_USE_STRONG_PULLUP
-  if (pullup_time > 0) {
-    owp->reg.state = ONEWIRE_PULL_UP;
-    owp->reg.need_pullup = true;
-  }
-#endif
 
   ow_bus_active(owp);
   osalSysLock();
@@ -781,14 +639,6 @@ void onewire_lld_write(onewireDriver *owp, uint8_t *txbuf,
 
   pwmDisablePeriodicNotification(pwmd);
   ow_bus_idle(owp);
-
-#if ONEWIRE_USE_STRONG_PULLUP
-  if (pullup_time > 0) {
-    osalThreadSleep(pullup_time);
-    owp->config->pullup_release();
-    owp->reg.state = ONEWIRE_READY;
-  }
-#endif
 }
 
 // #if ONEWIRE_USE_SEARCH_ROM

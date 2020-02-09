@@ -27,8 +27,6 @@
 
 #if (HAL_USE_ONEWIRE == TRUE) || defined(__DOXYGEN__)
 
-#include "hal_onewire_pwm_lld.h"
-
 /*===========================================================================*/
 /* Driver constants.                                                         */
 /*===========================================================================*/
@@ -122,71 +120,51 @@ typedef enum {
 } search_iteration_t;
 #endif /* ONEWIRE_USE_SEARCH_ROM */
 
-// /**
-//  * @brief   Driver configuration structure.
-//  */
-// typedef struct {
-//   /**
-//    * @brief Pointer to @p PWM driver used for communication.
-//    */
-//   PWMDriver                 *pwmd;
-//    /**
-//    * @brief Pointer to configuration structure for underlying PWM driver.
-//    * @note  It is NOT constant because 1-wire driver needs to change them
-//    *        during normal functioning.
-//    */
-//   PWMConfig                 *pwmcfg;
-//   /**
-//    * @brief   Active logic level for master channel.
-//    * @details Just set it to @p PWM_OUTPUT_ACTIVE_LOW when 1-wire bus
-//    *          connected to direct (not complementary) output of the timer.
-//    *          In opposite case you need to check documentation to choose
-//    *          correct value.
-//    */
-//   pwmmode_t                 pwmmode;
-//   /**
-//    * @brief Number of PWM channel used as master pulse generator.
-//    */
-//   size_t                    master_channel;
-//   /**
-//    * @brief Number of PWM channel used as sample interrupt generator.
-//    */
-//   size_t                    sample_channel;
-//   /**
-//    * @brief   Port Identifier.
-//    * @details This type can be a scalar or some kind of pointer, do not make
-//    *          any assumption about it, use the provided macros when populating
-//    *          variables of this type.
-//    */
-//   ioportid_t                port;
-//   /**
-//    * @brief Digital I/O port pad.
-//    */
-//   ioportmask_t              pad;
-// #if defined(STM32F1XX)
-//   /**
-//    * @brief   Digital I/O mode for idle bus.
-//    * @details This is a kind of workaround against F1x realization of alternate
-//    *          function. Alternate function mode will be activated only
-//    *          when you starts appropriate peripheral.
-//    */
-//   iomode_t                  pad_mode_idle;
-// #endif
-//   /**
-//    * @brief   Digital I/O mode for active bus.
-//    */
-//   iomode_t                  pad_mode_active;
-// #if ONEWIRE_USE_STRONG_PULLUP
-//   /**
-//    * @brief Pointer to function asserting of strong pull up.
-//    */
-//   onewire_pullup_assert_t   pullup_assert;
-//   /**
-//    * @brief Pointer to function releasing of strong pull up.
-//    */
-//   onewire_pullup_release_t  pullup_release;
-// #endif
-// } onewireConfig;
+typedef struct onewire_driver onewireDriver;
+typedef struct onewire_config onewireConfig;
+
+#include "hal_onewire_pwm_lld.h"
+
+/**
+ * @brief   Driver configuration structure.
+ */
+struct onewire_config {
+  /**
+   * @brief   Port Identifier.
+   * @details This type can be a scalar or some kind of pointer, do not make
+   *          any assumption about it, use the provided macros when populating
+   *          variables of this type.
+   */
+  ioportid_t                port;
+  /**
+   * @brief Digital I/O port pad.
+   */
+  ioportmask_t              pad;
+#if defined(STM32F1XX)
+  /**
+   * @brief   Digital I/O mode for idle bus.
+   * @details This is a kind of workaround against F1x realization of alternate
+   *          function. Alternate function mode will be activated only
+   *          when you starts appropriate peripheral.
+   */
+  iomode_t                  pad_mode_idle;
+#endif
+  /**
+   * @brief   Digital I/O mode for active bus.
+   */
+  iomode_t                  pad_mode_active;
+#if ONEWIRE_USE_STRONG_PULLUP
+  /**
+   * @brief Pointer to function asserting of strong pull up.
+   */
+  onewire_pullup_assert_t   pullup_assert;
+  /**
+   * @brief Pointer to function releasing of strong pull up.
+   */
+  onewire_pullup_release_t  pullup_release;
+#endif
+  onewire_lld_driver_fields;
+};
 
 #if ONEWIRE_USE_SEARCH_ROM
 /**
@@ -294,7 +272,7 @@ typedef struct {
 /**
  * @brief     Structure representing an 1-wire driver.
  */
-typedef struct {
+struct onewire_driver {
   /**
    * @brief   Onewire registry.
    */
@@ -317,7 +295,7 @@ typedef struct {
    * @brief   Thread waiting for I/O completion.
    */
   thread_reference_t  thread;
-} onewireDriver;
+};
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
