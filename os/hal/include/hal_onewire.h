@@ -77,6 +77,11 @@
 /*===========================================================================*/
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
+typedef struct onewire_driver onewireDriver;
+typedef struct onewire_config onewireConfig;
+
+typedef bool (*onewire_read_callback_t)(onewireDriver *owp);
+
 #if ONEWIRE_USE_STRONG_PULLUP
 /**
  * @brief   1-wire strong pull up assert callback type.
@@ -120,9 +125,6 @@ typedef enum {
 } search_iteration_t;
 #endif /* ONEWIRE_USE_SEARCH_ROM */
 
-typedef struct onewire_driver onewireDriver;
-typedef struct onewire_config onewireConfig;
-
 #include "hal_onewire_pwm_lld.h"
 
 /**
@@ -163,7 +165,7 @@ struct onewire_config {
    */
   onewire_pullup_release_t  pullup_release;
 #endif
-  onewire_lld_driver_fields;
+  onewire_lld_config_fields;
 };
 
 #if ONEWIRE_USE_SEARCH_ROM
@@ -295,6 +297,7 @@ struct onewire_driver {
    * @brief   Thread waiting for I/O completion.
    */
   thread_reference_t  thread;
+  onewire_lld_driver_fields;
 };
 
 /*===========================================================================*/

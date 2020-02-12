@@ -53,7 +53,7 @@
 /**
  * @brief   Driver configuration structure.
  */
-#define onewire_lld_driver_fields                                             \
+#define onewire_lld_config_fields                                             \
   /**                                                                         \
    * @brief Pointer to @p PWM driver used for communication.                  \
    */                                                                         \
@@ -81,6 +81,9 @@
    */                                                                         \
   size_t                    sample_channel
 
+#define onewire_lld_driver_fields                                             \
+  onewire_read_callback_t   read_cb;
+
 /*===========================================================================*/
 /* Driver macros.                                                            */
 /*===========================================================================*/
@@ -95,13 +98,14 @@
 extern "C" {
 #endif
 //   void onewireObjectInit(onewireDriver *owp);
-  void onewire_lld_start(onewireDriver *owp, const onewireConfig *config);
+  void onewire_lld_start(onewireDriver *owp);
   void onewire_lld_stop(onewireDriver *owp);
   bool onewire_lld_reset(onewireDriver *owp);
-  void onewire_lld_read(onewireDriver *owp, uint8_t *rxbuf, size_t rxbytes);
+  void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb);
+  bool onewire_lld_read_bit(onewireDriver *owp);
+  void onewire_lld_write_bit_I(onewireDriver *owp, bool bit);
 //   uint8_t onewireCRC(const uint8_t *buf, size_t len);
-  void onewire_lld_write(onewireDriver *owp, uint8_t *txbuf,
-                    size_t txbytes, systime_t pullup_time);
+  void onewire_lld_write(onewireDriver *owp);
 // #if ONEWIRE_USE_SEARCH_ROM
 //   size_t onewireSearchRom(onewireDriver *owp,
 //                           uint8_t *result, size_t max_rom_cnt);

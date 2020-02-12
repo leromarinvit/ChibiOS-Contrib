@@ -81,8 +81,8 @@ on every timer overflow event.
  * @brief     Local function declarations.
  */
 #if ONEWIRE_USE_SEARCH_ROM
-static void ow_search_rom_cb(PWMDriver *pwmp, onewireDriver *owp);
-static void pwm_search_rom_cb(PWMDriver *pwmp);
+static bool ow_search_rom_cb(onewireDriver *owp);
+// static void pwm_search_rom_cb(PWMDriver *pwmp);
 #endif
 
 /*===========================================================================*/
@@ -137,6 +137,54 @@ static const uint8_t onewire_crc_table[256] = {
 /*===========================================================================*/
 /* Driver local functions.                                                   */
 /*===========================================================================*/
+
+/**
+ * @brief     Function performing read of single bit.
+ * @note      It must be callable from any context.
+ */
+static ioline_t ow_read_bit(onewireDriver *owp) {
+#if ONEWIRE_SYNTH_SEARCH_TEST
+  (void)owp;
+  return _synth_ow_read_bit();
+#else
+  return palReadPad(owp->config->port, owp->config->pad);
+#endif
+}
+
+/**
+ * @brief     1-wire read bit callback.
+ * @note      Must be called from PWM's ISR.
+ *
+ * @param[in] pwmp      pointer to the @p PWMDriver object
+ * @param[in] owp       pointer to the @p onewireDriver object
+ *
+ * @notapi
+ */
+static bool ow_read_bit_cb(onewireDriver *owp) {
+
+  if (true == owp->reg.final_timeslot) {
+    return false;
+  }
+  else {
+    *owp->buf |= ow_read_bit(owp) << owp->reg.bit;
+    owp->reg.bit++;
+    if (8 == owp->reg.bit) {
+      owp->reg.bit = 0;
+      owp->buf++;
+      owp->reg.bytes--;
+      if (0 == owp->reg.bytes) {
+        owp->reg.final_timeslot = true;
+        // osalSysLockFromISR();
+        // /* Only master channel must be stopped here.
+        //    Sample channel will be stopped in next ISR call.
+        //    It is still needed to generate final interrupt. */
+        // pwmDisableChannelI(pwmp, owp->config->master_channel);
+        // osalSysUnlockFromISR();
+      }
+    }
+    return true;
+  }
+}
 
 #if ONEWIRE_USE_SEARCH_ROM
 /**
@@ -228,7 +276,7 @@ static uint8_t collision_handler(onewire_search_rom_t *sr) {
  *
  * @notapi
  */
-static void ow_search_rom_cb(PWMDriver *pwmp, onewireDriver *owp) {
+static bool ow_search_rom_cb(onewireDriver *owp) {
 
   onewire_search_rom_t *sr = &owp->search_rom;
 
@@ -248,23 +296,23 @@ static void ow_search_rom_cb(PWMDriver *pwmp, onewireDriver *owp) {
     case 0b01:
       /* all slaves have 1 in this position */
       store_bit(sr, 1);
-      ow_write_bit_I(owp, 1);
+      onewire_lld_write_bit_I(owp, 1);
       break;
     case 0b10:
       /* all slaves have 0 in this position */
       store_bit(sr, 0);
-      ow_write_bit_I(owp, 0);
+      onewire_lld_write_bit_I(owp, 0);
       break;
     case 0b00:
       /* collision */
       sr->reg.single_device = false;
-      ow_write_bit_I(owp, collision_handler(sr));
+      onewire_lld_write_bit_I(owp, collision_handler(sr));
       break;
     }
   }
   else {                                      /* start next step */
     #if !ONEWIRE_SYNTH_SEARCH_TEST
-    ow_write_bit_I(owp, 1);
+    onewire_lld_write_bit_I(owp, 1);
     #endif
     sr->reg.bit_step = 0;
     sr->reg.bit_buf = 0;
@@ -278,18 +326,18 @@ static void ow_search_rom_cb(PWMDriver *pwmp, onewireDriver *owp) {
       sr->reg.result = ONEWIRE_SEARCH_ROM_LAST;
     goto THE_END;
   }
-  return; /* next search bit iteration */
+  return true; /* next search bit iteration */
 
 THE_END:
 #if ONEWIRE_SYNTH_SEARCH_TEST
-  (void)pwmp;
-  return;
+  return false;
 #else
-  osalSysLockFromISR();
-  pwmDisableChannelI(pwmp, owp->config->master_channel);
-  pwmDisableChannelI(pwmp, owp->config->sample_channel);
-  osalThreadResumeI(&(owp)->thread, MSG_OK);
-  osalSysUnlockFromISR();
+  // osalSysLockFromISR();
+  // pwmDisableChannelI(pwmp, owp->config->master_channel);
+  // pwmDisableChannelI(pwmp, owp->config->sample_channel);
+  // osalThreadResumeI(&(owp)->thread, MSG_OK);
+  // osalSysUnlockFromISR();
+  return false;
 #endif
 }
 
@@ -398,7 +446,7 @@ void onewireStart(onewireDriver *owp, const onewireConfig *config) {
 
   owp->config = config;
 
-  onewire_lld_start(owp, config);
+  onewire_lld_start(owp);
 
   owp->reg.state = ONEWIRE_READY;
 }
@@ -458,7 +506,7 @@ void onewireRead(onewireDriver *owp, uint8_t *rxbuf, size_t rxbytes) {
   owp->buf = rxbuf;
   owp->reg.bytes = rxbytes;
 
-  onewire_lld_read(owp, rxbuf, rxbytes);
+  onewire_lld_read(owp, ow_read_bit_cb);
 }
 
 /**
@@ -492,6 +540,8 @@ void onewireWrite(onewireDriver *owp, uint8_t *txbuf,
     owp->reg.need_pullup = true;
   }
 #endif
+
+  onewire_lld_write(owp);
 
 #if ONEWIRE_USE_STRONG_PULLUP
   if (pullup_time > 0) {
@@ -568,7 +618,9 @@ size_t onewireSearchRom(onewireDriver *owp, uint8_t *result,
     // osalThreadSuspendS(&owp->thread);
     // osalSysUnlock();
 
-    ow_bus_idle(owp);
+    // ow_bus_idle(owp);
+
+    onewire_lld_read(owp, ow_search_rom_cb);
 
     if (ONEWIRE_SEARCH_ROM_ERROR != owp->search_rom.reg.result) {
       /* check CRC and return 0 (0 == error) if mismatch */
