@@ -91,7 +91,7 @@ static void ow_bus_active(onewireDriver *owp) {
  * @brief     Function performing read of single bit.
  * @note      It must be callable from any context.
  */
-bool onewire_lld_read_bit(onewireDriver *owp) {
+static bool ow_read_bit(onewireDriver *owp) {
 #if ONEWIRE_SYNTH_SEARCH_TEST
   (void)owp;
   return _synth_ow_read_bit();
@@ -110,7 +110,7 @@ bool onewire_lld_read_bit(onewireDriver *owp) {
  *
  * @notapi
  */
-void onewire_lld_write_bit_I(onewireDriver *owp, bool bit) {
+static void ow_write_bit_I(onewireDriver *owp, bool bit) {
 #if ONEWIRE_SYNTH_SEARCH_TEST
   _synth_ow_write_bit(owp, bit);
 #else
@@ -160,7 +160,7 @@ void onewire_lld_stop(onewireDriver *owp) {
 bool onewire_lld_reset(onewireDriver *owp) {
 
   /* short circuit on bus or any other device transmit data */
-  if (PAL_LOW == onewire_lld_read_bit(owp))
+  if (PAL_LOW == ow_read_bit(owp))
     return false;
 
   ow_bus_active(owp);
@@ -169,13 +169,13 @@ bool onewire_lld_reset(onewireDriver *owp) {
   ONEWIRE_UDELAY(ONEWIRE_RESET_LOW_WIDTH);
   palSetPad(owp->config->port, owp->config->pad);
   ONEWIRE_UDELAY(ONEWIRE_RESET_SAMPLE_WIDTH - ONEWIRE_RESET_LOW_WIDTH);
-  owp->reg.slave_present = (PAL_LOW == onewire_lld_read_bit(owp));
+  owp->reg.slave_present = (PAL_LOW == ow_read_bit(owp));
 
   ow_bus_idle(owp);
 
   /* wait until slave release bus to discriminate short circuit condition */
   osalThreadSleepMicroseconds(500);
-  return (PAL_HIGH == onewire_lld_read_bit(owp)) && (true == owp->reg.slave_present);
+  return (PAL_HIGH == ow_read_bit(owp)) && (true == owp->reg.slave_present);
 }
 
 /**
@@ -224,7 +224,7 @@ void onewire_lld_write(onewireDriver *owp) {
 
   while (owp->reg.bytes) {
     for (size_t i = 0; i < 8; i++)
-      onewire_lld_write_bit_I(owp, (*owp->buf >> i) & 1);
+      ow_write_bit_I(owp, (*owp->buf >> i) & 1);
     owp->buf++;
     owp->reg.bytes--;
   }

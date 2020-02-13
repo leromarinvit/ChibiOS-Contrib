@@ -96,7 +96,6 @@ extern "C" {
   void onewire_lld_stop(onewireDriver *owp);
   bool onewire_lld_reset(onewireDriver *owp);
   void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb);
-  bool onewire_lld_read_bit(onewireDriver *owp);
   void onewire_lld_write(onewireDriver *owp);
 #ifdef __cplusplus
 }
