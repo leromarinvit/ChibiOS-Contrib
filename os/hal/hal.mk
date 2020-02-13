@@ -25,6 +25,7 @@ endif
 ifneq ($(findstring HAL_USE_ONEWIRE TRUE,$(HALCONF)),)
 HALSRC_CONTRIB += ${CHIBIOS_CONTRIB}/os/hal/src/hal_onewire.c
 HALSRC_CONTRIB += ${CHIBIOS_CONTRIB}/os/hal/src/hal_onewire_pwm_lld.c
+HALSRC_CONTRIB += ${CHIBIOS_CONTRIB}/os/hal/src/hal_onewire_delay_lld.c
 endif
 ifneq ($(findstring HAL_USE_EICU TRUE,$(HALCONF)),)
 HALSRC_CONTRIB += ${CHIBIOS_CONTRIB}/os/hal/src/hal_eicu.c
@@ -91,6 +92,7 @@ HALSRC_CONTRIB := ${CHIBIOS_CONTRIB}/os/hal/src/hal_community.c \
                   ${CHIBIOS_CONTRIB}/os/hal/src/hal_sdram.c \
                   ${CHIBIOS_CONTRIB}/os/hal/src/hal_onewire.c \
                   ${CHIBIOS_CONTRIB}/os/hal/src/hal_onewire_pwm_lld.c \
+                  ${CHIBIOS_CONTRIB}/os/hal/src/hal_onewire_delay_lld.c \
                   ${CHIBIOS_CONTRIB}/os/hal/src/hal_eicu.c \
                   ${CHIBIOS_CONTRIB}/os/hal/src/hal_crc.c \
                   ${CHIBIOS_CONTRIB}/os/hal/src/hal_rng.c \

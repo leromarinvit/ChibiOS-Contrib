@@ -80,7 +80,13 @@
 typedef struct onewire_driver onewireDriver;
 typedef struct onewire_config onewireConfig;
 
-typedef bool (*onewire_read_callback_t)(onewireDriver *owp);
+typedef enum {
+  ONEWIRE_READ_CB_ONE,
+  ONEWIRE_READ_CB_ZERO,
+  ONEWIRE_READ_CB_END,
+} onewire_read_cb_result_t;
+
+typedef onewire_read_cb_result_t (*onewire_read_callback_t)(onewireDriver *owp);
 
 #if ONEWIRE_USE_STRONG_PULLUP
 /**
@@ -126,6 +132,15 @@ typedef enum {
 #endif /* ONEWIRE_USE_SEARCH_ROM */
 
 #include "hal_onewire_pwm_lld.h"
+#include "hal_onewire_delay_lld.h"
+
+#ifndef onewire_lld_driver_fields
+#define onewire_lld_driver_fields
+#endif
+
+#ifndef onewire_lld_config_fields
+#define onewire_lld_config_fields
+#endif
 
 /**
  * @brief   Driver configuration structure.
