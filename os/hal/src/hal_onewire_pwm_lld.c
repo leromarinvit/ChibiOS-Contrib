@@ -138,6 +138,33 @@ bool onewire_lld_read_bit(onewireDriver *owp) {
 }
 
 /**
+ * @brief     Write bit routine.
+ * @details   Switch PWM channel to 'width' or 'narrow' pulse depending
+ *            on value of bit need to be transmitted.
+ *
+ * @param[in] owp       pointer to the @p onewireDriver object
+ * @param[in] bit       value to be written
+ *
+ * @notapi
+ */
+static void ow_write_bit_I(onewireDriver *owp, bool bit) {
+#if ONEWIRE_SYNTH_SEARCH_TEST
+  _synth_ow_write_bit(owp, bit);
+#else
+  osalSysLockFromISR();
+  if (0 == bit) {
+    pwmEnableChannelI(owp->config->pwmd, owp->config->master_channel,
+                      ONEWIRE_ZERO_WIDTH);
+  }
+  else {
+    pwmEnableChannelI(owp->config->pwmd, owp->config->master_channel,
+                      ONEWIRE_ONE_WIDTH);
+  }
+  osalSysUnlockFromISR();
+#endif
+}
+
+/**
  * @brief     PWM adapter
  */
 static void pwm_reset_cb(PWMDriver *pwmp) {
@@ -148,12 +175,20 @@ static void pwm_reset_cb(PWMDriver *pwmp) {
  * @brief     PWM adapter
  */
 static void pwm_read_bit_cb(PWMDriver *pwmp) {
-  if (!OWD1.read_cb(&OWD1)) {
+  switch (OWD1.read_cb(&OWD1)) {
+  case ONEWIRE_READ_CB_ONE:
+    ow_write_bit_I(&OWD1, 1);
+    break;
+  case ONEWIRE_READ_CB_ZERO:
+    ow_write_bit_I(&OWD1, 0);
+    break;
+  case ONEWIRE_READ_CB_END:
     osalSysLockFromISR();
     pwmDisableChannelI(pwmp, OWD1.config->master_channel);
     pwmDisableChannelI(pwmp, OWD1.config->sample_channel);
     osalThreadResumeI(&OWD1.thread, MSG_OK);
     osalSysUnlockFromISR();
+    break;
   }
   // ow_read_bit_cb(pwmp, &OWD1);
 }
@@ -173,33 +208,6 @@ static void pwm_write_bit_cb(PWMDriver *pwmp) {
 //   ow_search_rom_cb(pwmp, &OWD1);
 // }
 // #endif /* ONEWIRE_USE_SEARCH_ROM */
-
-/**
- * @brief     Write bit routine.
- * @details   Switch PWM channel to 'width' or 'narrow' pulse depending
- *            on value of bit need to be transmitted.
- *
- * @param[in] owp       pointer to the @p onewireDriver object
- * @param[in] bit       value to be written
- *
- * @notapi
- */
-void onewire_lld_write_bit_I(onewireDriver *owp, bool bit) {
-#if ONEWIRE_SYNTH_SEARCH_TEST
-  _synth_ow_write_bit(owp, bit);
-#else
-  osalSysLockFromISR();
-  if (0 == bit) {
-    pwmEnableChannelI(owp->config->pwmd, owp->config->master_channel,
-                      ONEWIRE_ZERO_WIDTH);
-  }
-  else {
-    pwmEnableChannelI(owp->config->pwmd, owp->config->master_channel,
-                      ONEWIRE_ONE_WIDTH);
-  }
-  osalSysUnlockFromISR();
-#endif
-}
 
 /**
  * @brief     1-wire reset pulse callback.
@@ -299,7 +307,7 @@ static void ow_write_bit_cb(PWMDriver *pwmp, onewireDriver *owp) {
     return;
   }
 
-  onewire_lld_write_bit_I(owp, (*owp->buf >> owp->reg.bit) & 1);
+  ow_write_bit_I(owp, (*owp->buf >> owp->reg.bit) & 1);
   owp->reg.bit++;
 }
 
