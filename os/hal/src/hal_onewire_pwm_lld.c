@@ -86,14 +86,9 @@ on every timer overflow event.
  */
 static void ow_reset_cb(PWMDriver *pwmp, onewireDriver *owp);
 static void pwm_reset_cb(PWMDriver *pwmp);
-// static void ow_read_bit_cb(PWMDriver *pwmp, onewireDriver *owp);
 static void pwm_read_bit_cb(PWMDriver *pwmp);
 static void ow_write_bit_cb(PWMDriver *pwmp, onewireDriver *owp);
 static void pwm_write_bit_cb(PWMDriver *pwmp);
-#if ONEWIRE_USE_SEARCH_ROM
-// static void ow_search_rom_cb(PWMDriver *pwmp, onewireDriver *owp);
-// static void pwm_search_rom_cb(PWMDriver *pwmp);
-#endif
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -190,7 +185,6 @@ static void pwm_read_bit_cb(PWMDriver *pwmp) {
     osalSysUnlockFromISR();
     break;
   }
-  // ow_read_bit_cb(pwmp, &OWD1);
 }
 
 /**
@@ -199,15 +193,6 @@ static void pwm_read_bit_cb(PWMDriver *pwmp) {
 static void pwm_write_bit_cb(PWMDriver *pwmp) {
   ow_write_bit_cb(pwmp, &OWD1);
 }
-
-// #if ONEWIRE_USE_SEARCH_ROM
-// /**
-//  * @brief     PWM adapter
-//  */
-// static void pwm_search_rom_cb(PWMDriver *pwmp) {
-//   ow_search_rom_cb(pwmp, &OWD1);
-// }
-// #endif /* ONEWIRE_USE_SEARCH_ROM */
 
 /**
  * @brief     1-wire reset pulse callback.
@@ -226,44 +211,6 @@ static void ow_reset_cb(PWMDriver *pwmp, onewireDriver *owp) {
   osalThreadResumeI(&owp->thread, MSG_OK);
   osalSysUnlockFromISR();
 }
-
-// /**
-//  * @brief     1-wire read bit callback.
-//  * @note      Must be called from PWM's ISR.
-//  *
-//  * @param[in] pwmp      pointer to the @p PWMDriver object
-//  * @param[in] owp       pointer to the @p onewireDriver object
-//  *
-//  * @notapi
-//  */
-// static void ow_read_bit_cb(PWMDriver *pwmp, onewireDriver *owp) {
-
-//   if (true == owp->reg.final_timeslot) {
-//     osalSysLockFromISR();
-//     pwmDisableChannelI(pwmp, owp->config->sample_channel);
-//     osalThreadResumeI(&owp->thread, MSG_OK);
-//     osalSysUnlockFromISR();
-//     return;
-//   }
-//   else {
-//     *owp->buf |= ow_read_bit(owp) << owp->reg.bit;
-//     owp->reg.bit++;
-//     if (8 == owp->reg.bit) {
-//       owp->reg.bit = 0;
-//       owp->buf++;
-//       owp->reg.bytes--;
-//       if (0 == owp->reg.bytes) {
-//         owp->reg.final_timeslot = true;
-//         osalSysLockFromISR();
-//         /* Only master channel must be stopped here.
-//            Sample channel will be stopped in next ISR call.
-//            It is still needed to generate final interrupt. */
-//         pwmDisableChannelI(pwmp, owp->config->master_channel);
-//         osalSysUnlockFromISR();
-//       }
-//     }
-//   }
-// }
 
 /**
  * @brief     1-wire bit transmission callback.
@@ -310,197 +257,6 @@ static void ow_write_bit_cb(PWMDriver *pwmp, onewireDriver *owp) {
   ow_write_bit_I(owp, (*owp->buf >> owp->reg.bit) & 1);
   owp->reg.bit++;
 }
-
-// #if ONEWIRE_USE_SEARCH_ROM
-// /**
-//  * @brief   Helper function for collision handler
-//  *
-//  * @param[in] sr        pointer to the @p onewire_search_rom_t helper structure
-//  * @param[in] bit       discovered bit to be stored in helper structure
-//  */
-// static void store_bit(onewire_search_rom_t *sr, uint8_t bit) {
-
-//   size_t rb = sr->reg.rombit;
-
-//   sr->retbuf[rb / CHAR_BIT] |= bit << (rb % CHAR_BIT);
-//   sr->reg.rombit++;
-// }
-
-// /**
-//  * @brief     Helper function for collision handler
-//  * @details   Extract bit from previous search path.
-//  *
-//  * @param[in] path      pointer to the array with previous path stored in
-//  *                      'search ROM' helper structure
-//  * @param[in] bit       number of bit [0..63]
-//  */
-// static uint8_t extract_path_bit(const uint8_t *path, size_t bit) {
-
-//   return (path[bit / CHAR_BIT] >> (bit % CHAR_BIT)) & 1;
-// }
-
-// /**
-//  * @brief     Collision handler for 'search ROM' procedure.
-//  * @details   You can find algorithm details in APPNOTE 187
-//  *            "1-Wire Search Algorithm" from Maxim
-//  *
-//  * @param[in,out] sr    pointer to the @p onewire_search_rom_t helper structure
-//  */
-// static uint8_t collision_handler(onewire_search_rom_t *sr) {
-
-//   uint8_t bit;
-
-//   switch(sr->reg.search_iter) {
-//   case ONEWIRE_SEARCH_ROM_NEXT:
-//     if ((int)sr->reg.rombit < sr->last_zero_branch) {
-//       bit = extract_path_bit(sr->prev_path, sr->reg.rombit);
-//       if (0 == bit) {
-//         sr->prev_zero_branch = sr->reg.rombit;
-//         sr->reg.result = ONEWIRE_SEARCH_ROM_SUCCESS;
-//       }
-//       store_bit(sr, bit);
-//       return bit;
-//     }
-//     else if ((int)sr->reg.rombit == sr->last_zero_branch) {
-//       sr->last_zero_branch = sr->prev_zero_branch;
-//       store_bit(sr, 1);
-//       return 1;
-//     }
-//     else {
-//       /* found next branch some levels deeper */
-//       sr->prev_zero_branch = sr->last_zero_branch;
-//       sr->last_zero_branch = sr->reg.rombit;
-//       store_bit(sr, 0);
-//       sr->reg.result = ONEWIRE_SEARCH_ROM_SUCCESS;
-//       return 0;
-//     }
-//     break;
-
-//   case ONEWIRE_SEARCH_ROM_FIRST:
-//     /* always take 0-branch */
-//     sr->prev_zero_branch = sr->last_zero_branch;
-//     sr->last_zero_branch = sr->reg.rombit;
-//     store_bit(sr, 0);
-//     sr->reg.result = ONEWIRE_SEARCH_ROM_SUCCESS;
-//     return 0;
-//     break;
-
-//   default:
-//     osalSysHalt("Unhandled case");
-//     return 0; /* warning supressor */
-//     break;
-//   }
-// }
-
-// /**
-//  * @brief     1-wire search ROM callback.
-//  * @note      Must be called from PWM's ISR.
-//  *
-//  * @param[in] pwmp      pointer to the @p PWMDriver object
-//  * @param[in] owp       pointer to the @p onewireDriver object
-//  *
-//  * @notapi
-//  */
-// static void ow_search_rom_cb(PWMDriver *pwmp, onewireDriver *owp) {
-
-//   onewire_search_rom_t *sr = &owp->search_rom;
-
-//   if (0 == sr->reg.bit_step) {                    /* read direct bit */
-//     sr->reg.bit_buf |= ow_read_bit(owp);
-//     sr->reg.bit_step++;
-//   }
-//   else if (1 == sr->reg.bit_step) {               /* read complement bit */
-//     sr->reg.bit_buf |= ow_read_bit(owp) << 1;
-//     sr->reg.bit_step++;
-//     switch(sr->reg.bit_buf){
-//     case 0b11:
-//       /* no one device on bus or any other fail happened */
-//       sr->reg.result = ONEWIRE_SEARCH_ROM_ERROR;
-//       goto THE_END;
-//       break;
-//     case 0b01:
-//       /* all slaves have 1 in this position */
-//       store_bit(sr, 1);
-//       ow_write_bit_I(owp, 1);
-//       break;
-//     case 0b10:
-//       /* all slaves have 0 in this position */
-//       store_bit(sr, 0);
-//       ow_write_bit_I(owp, 0);
-//       break;
-//     case 0b00:
-//       /* collision */
-//       sr->reg.single_device = false;
-//       ow_write_bit_I(owp, collision_handler(sr));
-//       break;
-//     }
-//   }
-//   else {                                      /* start next step */
-//     #if !ONEWIRE_SYNTH_SEARCH_TEST
-//     ow_write_bit_I(owp, 1);
-//     #endif
-//     sr->reg.bit_step = 0;
-//     sr->reg.bit_buf = 0;
-//   }
-
-//   /* one ROM successfully discovered */
-//   if (64 == sr->reg.rombit) {
-//     sr->reg.devices_found++;
-//     sr->reg.search_iter = ONEWIRE_SEARCH_ROM_NEXT;
-//     if (true == sr->reg.single_device)
-//       sr->reg.result = ONEWIRE_SEARCH_ROM_LAST;
-//     goto THE_END;
-//   }
-//   return; /* next search bit iteration */
-
-// THE_END:
-// #if ONEWIRE_SYNTH_SEARCH_TEST
-//   (void)pwmp;
-//   return;
-// #else
-//   osalSysLockFromISR();
-//   pwmDisableChannelI(pwmp, owp->config->master_channel);
-//   pwmDisableChannelI(pwmp, owp->config->sample_channel);
-//   osalThreadResumeI(&(owp)->thread, MSG_OK);
-//   osalSysUnlockFromISR();
-// #endif
-// }
-
-// /**
-//  * @brief       Helper function. Initialize structures required by 'search ROM'.
-//  * @details     Early reset. Call it once before 'search ROM' routine.
-//  *
-//  * @param[in] sr        pointer to the @p onewire_search_rom_t helper structure
-//  */
-// static void search_clean_start(onewire_search_rom_t *sr) {
-
-//   sr->reg.single_device = true; /* presume simplest way at beginning */
-//   sr->reg.result = ONEWIRE_SEARCH_ROM_LAST;
-//   sr->reg.search_iter = ONEWIRE_SEARCH_ROM_FIRST;
-//   sr->retbuf = NULL;
-//   sr->reg.devices_found = 0;
-//   memset(sr->prev_path, 0, 8);
-
-//   sr->reg.rombit = 0;
-//   sr->reg.bit_step = 0;
-//   sr->reg.bit_buf = 0;
-//   sr->last_zero_branch = -1;
-//   sr->prev_zero_branch = -1;
-// }
-
-// /**
-//  * @brief       Helper function. Prepare structures required by 'search ROM'.
-//  *
-//  * @param[in] sr        pointer to the @p onewire_search_rom_t helper structure
-//  */
-// static void search_clean_iteration(onewire_search_rom_t *sr) {
-
-//   sr->reg.rombit = 0;
-//   sr->reg.bit_step = 0;
-//   sr->reg.bit_buf = 0;
-//   sr->reg.result = ONEWIRE_SEARCH_ROM_LAST;
-// }
-// #endif /* ONEWIRE_USE_SEARCH_ROM */
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
@@ -656,92 +412,6 @@ void onewire_lld_write(onewireDriver *owp) {
   pwmDisablePeriodicNotification(pwmd);
   ow_bus_idle(owp);
 }
-
-// #if ONEWIRE_USE_SEARCH_ROM
-// /**
-//  * @brief   Performs tree search on bus.
-//  * @note    This function does internal 1-wire reset calls every search
-//  *          iteration.
-//  *
-//  * @param[in] owp         pointer to a @p OWDriver object
-//  * @param[out] result     pointer to buffer for discovered ROMs
-//  * @param[in] max_rom_cnt buffer size in ROMs count for overflow prevention
-//  *
-//  * @return              Count of discovered ROMs. May be more than max_rom_cnt.
-//  * @retval 0            no ROMs found or communication error occurred.
-//  */
-// size_t onewireSearchRom(onewireDriver *owp, uint8_t *result,
-//                         size_t max_rom_cnt) {
-//   PWMDriver *pwmd;
-//   PWMConfig *pwmcfg;
-//   uint8_t cmd;
-//   size_t mch, sch;
-
-//   osalDbgCheck(NULL != owp);
-//   osalDbgAssert(ONEWIRE_READY == owp->reg.state, "Invalid state");
-//   osalDbgCheck((max_rom_cnt <= 256) && (max_rom_cnt > 0));
-
-//   pwmd = owp->config->pwmd;
-//   pwmcfg = owp->config->pwmcfg;
-//   cmd = ONEWIRE_CMD_SEARCH_ROM;
-//   mch = owp->config->master_channel;
-//   sch = owp->config->sample_channel;
-
-//   search_clean_start(&owp->search_rom);
-
-//   do {
-//     /* every search must be started from reset pulse */
-//     if (false == onewireReset(owp))
-//       return 0;
-
-//     /* initialize buffer to store result */
-//     if (owp->search_rom.reg.devices_found >= max_rom_cnt)
-//       owp->search_rom.retbuf = result + 8*(max_rom_cnt-1);
-//     else
-//       owp->search_rom.retbuf = result + 8*owp->search_rom.reg.devices_found;
-//     memset(owp->search_rom.retbuf, 0, 8);
-
-//     /* clean iteration state */
-//     search_clean_iteration(&owp->search_rom);
-
-//     /**/
-//     onewireWrite(&OWD1, &cmd, 1, 0);
-
-//     /* Reconfiguration always needed because of previous call onewireWrite.*/
-//     pwmcfg->period = ONEWIRE_ZERO_WIDTH + ONEWIRE_RECOVERY_WIDTH;
-//     pwmcfg->callback = NULL;
-//     pwmcfg->channels[mch].callback = NULL;
-//     pwmcfg->channels[mch].mode = owp->config->pwmmode;
-//     pwmcfg->channels[sch].callback = pwm_search_rom_cb;
-//     pwmcfg->channels[sch].mode = PWM_OUTPUT_DISABLED;
-
-//     ow_bus_active(owp);
-//     osalSysLock();
-//     pwmEnableChannelI(pwmd, mch, ONEWIRE_ONE_WIDTH);
-//     pwmEnableChannelI(pwmd, sch, ONEWIRE_SAMPLE_WIDTH);
-//     pwmEnableChannelNotificationI(pwmd, sch);
-//     osalThreadSuspendS(&owp->thread);
-//     osalSysUnlock();
-
-//     ow_bus_idle(owp);
-
-//     if (ONEWIRE_SEARCH_ROM_ERROR != owp->search_rom.reg.result) {
-//       /* check CRC and return 0 (0 == error) if mismatch */
-//       if (owp->search_rom.retbuf[7] != onewireCRC(owp->search_rom.retbuf, 7))
-//         return 0;
-//       /* store cached result for usage in next iteration */
-//       memcpy(owp->search_rom.prev_path, owp->search_rom.retbuf, 8);
-//     }
-//   }
-//   while (ONEWIRE_SEARCH_ROM_SUCCESS == owp->search_rom.reg.result);
-
-//   /**/
-//   if (ONEWIRE_SEARCH_ROM_ERROR == owp->search_rom.reg.result)
-//     return 0;
-//   else
-//     return owp->search_rom.reg.devices_found;
-// }
-// #endif /* ONEWIRE_USE_SEARCH_ROM */
 
 /*
  * Include test code (if enabled).

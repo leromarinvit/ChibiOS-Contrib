@@ -97,23 +97,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-//   void onewireObjectInit(onewireDriver *owp);
   void onewire_lld_start(onewireDriver *owp);
   void onewire_lld_stop(onewireDriver *owp);
   bool onewire_lld_reset(onewireDriver *owp);
   void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb);
   bool onewire_lld_read_bit(onewireDriver *owp);
-//   uint8_t onewireCRC(const uint8_t *buf, size_t len);
   void onewire_lld_write(onewireDriver *owp);
-// #if ONEWIRE_USE_SEARCH_ROM
-//   size_t onewireSearchRom(onewireDriver *owp,
-//                           uint8_t *result, size_t max_rom_cnt);
-// #endif /* ONEWIRE_USE_SEARCH_ROM */
-// #if ONEWIRE_SYNTH_SEARCH_TEST
-//   void _synth_ow_write_bit(onewireDriver *owp, ioline_t bit);
-//   ioline_t _synth_ow_read_bit(void);
-//   void synthSearchRomTest(onewireDriver *owp);
-// #endif /* ONEWIRE_SYNTH_SEARCH_TEST */
 #ifdef __cplusplus
 }
 #endif
