@@ -162,28 +162,16 @@ static ioline_t ow_read_bit(onewireDriver *owp) {
  */
 static onewire_read_cb_result_t ow_read_bit_cb(onewireDriver *owp) {
 
-  if (true == owp->reg.final_timeslot) {
-    return ONEWIRE_READ_CB_END;
+  *owp->buf |= ow_read_bit(owp) << owp->reg.bit;
+  owp->reg.bit++;
+  if (8 == owp->reg.bit) {
+    owp->reg.bit = 0;
+    owp->buf++;
+    owp->reg.bytes--;
+    if (0 == owp->reg.bytes)
+      return ONEWIRE_READ_CB_END;
   }
-  else {
-    *owp->buf |= ow_read_bit(owp) << owp->reg.bit;
-    owp->reg.bit++;
-    if (8 == owp->reg.bit) {
-      owp->reg.bit = 0;
-      owp->buf++;
-      owp->reg.bytes--;
-      if (0 == owp->reg.bytes) {
-        owp->reg.final_timeslot = true;
-        // osalSysLockFromISR();
-        // /* Only master channel must be stopped here.
-        //    Sample channel will be stopped in next ISR call.
-        //    It is still needed to generate final interrupt. */
-        // pwmDisableChannelI(pwmp, owp->config->master_channel);
-        // osalSysUnlockFromISR();
-      }
-    }
-    return ONEWIRE_READ_CB_ONE;
-  }
+  return ONEWIRE_READ_CB_ONE;
 }
 
 #if ONEWIRE_USE_SEARCH_ROM
