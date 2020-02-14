@@ -69,19 +69,6 @@ on every timer overflow event.
 #define ONEWIRE_PWM_FREQUENCY         1000000
 
 /**
- * @brief     Pulse width constants in microseconds.
- * @details   Inspired by Microchip's AN1199
- *            "1-Wire® Communication with PIC® Microcontroller"
- */
-#define ONEWIRE_ZERO_WIDTH            60
-#define ONEWIRE_ONE_WIDTH             6
-#define ONEWIRE_SAMPLE_WIDTH          15
-#define ONEWIRE_RECOVERY_WIDTH        10
-#define ONEWIRE_RESET_LOW_WIDTH       480
-#define ONEWIRE_RESET_SAMPLE_WIDTH    550
-#define ONEWIRE_RESET_TOTAL_WIDTH     960
-
-/**
  * @brief     Local function declarations.
  */
 static void ow_reset_cb(PWMDriver *pwmp, onewireDriver *owp);
