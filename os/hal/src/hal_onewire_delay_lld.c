@@ -41,9 +41,6 @@
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
-#ifndef ONEWIRE_UDELAY
-#define ONEWIRE_UDELAY(t)             osalSysPolledDelayX(OSAL_US2RTC(STM32_SYSCLK, t))
-#endif
 
 /**
  * @brief     Local function declarations.
@@ -103,9 +100,9 @@ static void ow_write_bit_I(onewireDriver *owp, bool bit) {
 #else
   const int delay = bit ? ONEWIRE_ONE_WIDTH : ONEWIRE_ZERO_WIDTH;
   palClearPad(owp->config->port, owp->config->pad);
-  ONEWIRE_UDELAY(delay);
+  owp->config->udelay(delay);
   palSetPad(owp->config->port, owp->config->pad);
-  ONEWIRE_UDELAY(ONEWIRE_ZERO_WIDTH + ONEWIRE_RECOVERY_WIDTH - delay);
+  owp->config->udelay(ONEWIRE_ZERO_WIDTH + ONEWIRE_RECOVERY_WIDTH - delay);
 #endif
 }
 
@@ -153,9 +150,9 @@ bool onewire_lld_reset(onewireDriver *owp) {
   ow_bus_active(owp);
 
   palClearPad(owp->config->port, owp->config->pad);
-  ONEWIRE_UDELAY(ONEWIRE_RESET_LOW_WIDTH);
+  owp->config->udelay(ONEWIRE_RESET_LOW_WIDTH);
   palSetPad(owp->config->port, owp->config->pad);
-  ONEWIRE_UDELAY(ONEWIRE_RESET_SAMPLE_WIDTH - ONEWIRE_RESET_LOW_WIDTH);
+  owp->config->udelay(ONEWIRE_RESET_SAMPLE_WIDTH - ONEWIRE_RESET_LOW_WIDTH);
   owp->reg.slave_present = (PAL_LOW == ow_read_bit(owp));
 
   ow_bus_idle(owp);
@@ -180,17 +177,17 @@ void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb) {
   do {
     onewire_read_cb_result_t last_result = result;
     palClearPad(owp->config->port, owp->config->pad);
-    ONEWIRE_UDELAY(ONEWIRE_ONE_WIDTH);
+    owp->config->udelay(ONEWIRE_ONE_WIDTH);
     if (last_result != ONEWIRE_READ_CB_ZERO)
       palSetPad(owp->config->port, owp->config->pad);
-    ONEWIRE_UDELAY(ONEWIRE_SAMPLE_WIDTH - ONEWIRE_ONE_WIDTH);
+    owp->config->udelay(ONEWIRE_SAMPLE_WIDTH - ONEWIRE_ONE_WIDTH);
     result = cb(owp);
     if (last_result == ONEWIRE_READ_CB_ZERO) {
-      ONEWIRE_UDELAY(ONEWIRE_ZERO_WIDTH - ONEWIRE_SAMPLE_WIDTH);
+      owp->config->udelay(ONEWIRE_ZERO_WIDTH - ONEWIRE_SAMPLE_WIDTH);
       palSetPad(owp->config->port, owp->config->pad);
-      ONEWIRE_UDELAY(ONEWIRE_RECOVERY_WIDTH);
+      owp->config->udelay(ONEWIRE_RECOVERY_WIDTH);
     } else {
-      ONEWIRE_UDELAY(ONEWIRE_RECOVERY_WIDTH + ONEWIRE_ZERO_WIDTH - ONEWIRE_SAMPLE_WIDTH);
+      owp->config->udelay(ONEWIRE_RECOVERY_WIDTH + ONEWIRE_ZERO_WIDTH - ONEWIRE_SAMPLE_WIDTH);
     }
   } while (result != ONEWIRE_READ_CB_END);
 
