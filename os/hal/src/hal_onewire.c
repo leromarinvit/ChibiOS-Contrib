@@ -82,7 +82,6 @@ on every timer overflow event.
  */
 #if ONEWIRE_USE_SEARCH_ROM
 static onewire_read_cb_result_t ow_search_rom_cb(onewireDriver *owp);
-// static void pwm_search_rom_cb(PWMDriver *pwmp);
 #endif
 
 /*===========================================================================*/
@@ -322,16 +321,7 @@ static onewire_read_cb_result_t ow_search_rom_cb(onewireDriver *owp) {
   return result; /* next search bit iteration */
 
 THE_END:
-#if ONEWIRE_SYNTH_SEARCH_TEST
   return ONEWIRE_READ_CB_END;
-#else
-  // osalSysLockFromISR();
-  // pwmDisableChannelI(pwmp, owp->config->master_channel);
-  // pwmDisableChannelI(pwmp, owp->config->sample_channel);
-  // osalThreadResumeI(&(owp)->thread, MSG_OK);
-  // osalSysUnlockFromISR();
-  return ONEWIRE_READ_CB_END;
-#endif
 }
 
 /**
@@ -429,8 +419,6 @@ void onewireObjectInit(onewireDriver *owp) {
 void onewireStart(onewireDriver *owp, const onewireConfig *config) {
 
   osalDbgCheck((NULL != owp) && (NULL != config));
-  // osalDbgAssert(PWM_STOP == config->pwmd->state,
-  //     "PWM will be started by onewire driver internally");
   osalDbgAssert(ONEWIRE_STOP == owp->reg.state, "Invalid state");
 #if ONEWIRE_USE_STRONG_PULLUP
   osalDbgCheck((NULL != config->pullup_assert) &&
@@ -560,20 +548,13 @@ void onewireWrite(onewireDriver *owp, uint8_t *txbuf,
  */
 size_t onewireSearchRom(onewireDriver *owp, uint8_t *result,
                         size_t max_rom_cnt) {
-  // PWMDriver *pwmd;
-  // PWMConfig *pwmcfg;
   uint8_t cmd;
-  // size_t mch, sch;
 
   osalDbgCheck(NULL != owp);
   osalDbgAssert(ONEWIRE_READY == owp->reg.state, "Invalid state");
   osalDbgCheck((max_rom_cnt <= 256) && (max_rom_cnt > 0));
 
-  // pwmd = owp->config->pwmd;
-  // pwmcfg = owp->config->pwmcfg;
   cmd = ONEWIRE_CMD_SEARCH_ROM;
-  // mch = owp->config->master_channel;
-  // sch = owp->config->sample_channel;
 
   search_clean_start(&owp->search_rom);
 
@@ -594,24 +575,6 @@ size_t onewireSearchRom(onewireDriver *owp, uint8_t *result,
 
     /**/
     onewireWrite(&OWD1, &cmd, 1, 0);
-
-    // /* Reconfiguration always needed because of previous call onewireWrite.*/
-    // pwmcfg->period = ONEWIRE_ZERO_WIDTH + ONEWIRE_RECOVERY_WIDTH;
-    // pwmcfg->callback = NULL;
-    // pwmcfg->channels[mch].callback = NULL;
-    // pwmcfg->channels[mch].mode = owp->config->pwmmode;
-    // pwmcfg->channels[sch].callback = pwm_search_rom_cb;
-    // pwmcfg->channels[sch].mode = PWM_OUTPUT_DISABLED;
-
-    // ow_bus_active(owp);
-    // osalSysLock();
-    // pwmEnableChannelI(pwmd, mch, ONEWIRE_ONE_WIDTH);
-    // pwmEnableChannelI(pwmd, sch, ONEWIRE_SAMPLE_WIDTH);
-    // pwmEnableChannelNotificationI(pwmd, sch);
-    // osalThreadSuspendS(&owp->thread);
-    // osalSysUnlock();
-
-    // ow_bus_idle(owp);
 
     onewire_lld_read(owp, ow_search_rom_cb);
 
