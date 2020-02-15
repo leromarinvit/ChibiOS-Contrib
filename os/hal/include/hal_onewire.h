@@ -79,12 +79,20 @@
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
-#if !HAL_USE_PWM
-#error "1-wire Driver requires HAL_USE_PWM"
-#endif
-
 #if !HAL_USE_PAL
 #error "1-wire Driver requires HAL_USE_PAL"
+#endif
+
+#if !defined(ONEWIRE_USE_PWM)
+#define ONEWIRE_USE_PWM                     FALSE
+#endif
+
+#if !defined(ONEWIRE_USE_DELAY)
+#define ONEWIRE_USE_DELAY                   FALSE
+#endif
+
+#if !ONEWIRE_USE_PWM && !ONEWIRE_USE_DELAY
+#error "Onewire driver enabled, but no LLD selected"
 #endif
 
 /*===========================================================================*/
@@ -93,12 +101,22 @@
 typedef struct onewire_driver onewireDriver;
 typedef struct onewire_config onewireConfig;
 
+/**
+ * @brief   Read bit callback result type.
+ */
 typedef enum {
-  ONEWIRE_READ_CB_ONE,
-  ONEWIRE_READ_CB_ZERO,
-  ONEWIRE_READ_CB_END,
+  ONEWIRE_READ_CB_ONE,        /**< Normal read                               */
+  ONEWIRE_READ_CB_ZERO,       /**< Bus forced to zero during next read cycle */
+  ONEWIRE_READ_CB_END,        /**< Read ends after this bit                  */
 } onewire_read_cb_result_t;
 
+/**
+ * @brief   Read bit callback.
+ * @defails Called at the sampling instant for each bit that is read. Returns
+ *          one of the values defined in @p onewire_read_cb_result_t to specify
+ *          if during the next bit cycle, a one or a zero should be written, or
+ *          if the read should be stopped.
+ */
 typedef onewire_read_cb_result_t (*onewire_read_callback_t)(onewireDriver *owp);
 
 #if ONEWIRE_USE_STRONG_PULLUP

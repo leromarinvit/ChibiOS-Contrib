@@ -18,22 +18,16 @@
 /* Main ideas:                                                               */
 /*===========================================================================
 
-1) switch PWM output pin to open drain mode.
-2) start 2 channels _simultaneously_. First (master channel) generates
-   pulses (read time slots) second (sample channel) generates interrupts
-   from where read pin function will be called.
+   This aims to be a generic "upper half" 1-wire driver. The actual bit
+   twiddling and timing generation is left to the lower half.
 
--      --------------------------------------- master channel generates pulses
- |   /                            .
-  --.............................  <---------- slave (not)pulls down bus here
--             -------------------------------- sample channel reads pad state
- |            |
-  -------------
-              ^
-              | read interrupt fires here
-
-For data write it is only master channel needed. Data bit width updates
-on every timer overflow event.
+ * Write: Straightforward, just handle strong pullup here and defer the rest of
+          the write to the LLD.
+ * Read:  The LLD is expected to generate read pulses and call back in the right
+          moment for the actual read. This complexity is needed to support the
+          Search ROM algorithm without reimplementing it in every LLD. Note,
+          however, that this approach is incompatible with hypothetical byte
+          oriented (instead of bitwise) LLDs.
 */
 
 /*===========================================================================*/
@@ -152,9 +146,8 @@ static ioline_t ow_read_bit(onewireDriver *owp) {
 
 /**
  * @brief     1-wire read bit callback.
- * @note      Must be called from PWM's ISR.
+ * @note      Must be callable from any context.
  *
- * @param[in] pwmp      pointer to the @p PWMDriver object
  * @param[in] owp       pointer to the @p onewireDriver object
  *
  * @notapi
@@ -256,9 +249,8 @@ static uint8_t collision_handler(onewire_search_rom_t *sr) {
 
 /**
  * @brief     1-wire search ROM callback.
- * @note      Must be called from PWM's ISR.
+ * @note      Must be callable from any context.
  *
- * @param[in] pwmp      pointer to the @p PWMDriver object
  * @param[in] owp       pointer to the @p onewireDriver object
  *
  * @notapi
@@ -433,7 +425,7 @@ void onewireStart(onewireDriver *owp, const onewireConfig *config) {
 }
 
 /**
- * @brief   Deactivates the UART peripheral.
+ * @brief   Deactivates the onewire peripheral.
  *
  * @param[in] owp       pointer to the @p onewireDriver object
  *
