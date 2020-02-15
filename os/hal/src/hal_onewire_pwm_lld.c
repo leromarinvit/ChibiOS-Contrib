@@ -250,10 +250,9 @@ static void ow_write_bit_cb(PWMDriver *pwmp, onewireDriver *owp) {
 /*===========================================================================*/
 
 /**
- * @brief   Configures and activates the 1-wire driver.
+ * @brief   Activates the 1-wire driver.
  *
  * @param[in] owp       pointer to the @p onewireDriver object
- * @param[in] config    pointer to the @p onewireConfig object
  *
  * @api
  */
@@ -328,11 +327,13 @@ bool onewire_lld_reset(onewireDriver *owp) {
 }
 
 /**
- * @brief     Read some bytes from slave device.
+ * @brief     Read data from slave device.
+ *            Generates read pulses and calls the callback function at the
+ *            sampling instant. This callback must do the actual read, and its
+ *            return value determines if and how the process continues.
  *
  * @param[in] owp       pointer to the @p onewireDriver object
- * @param[out] rxbuf    pointer to the buffer for read data
- * @param[in] rxbytes   amount of data to be received
+ * @param[in] cb        bit read callback
  */
 void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb) {
   PWMDriver *pwmd;
@@ -368,10 +369,6 @@ void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb) {
  * @brief     Write some bytes to slave device.
  *
  * @param[in] owp           pointer to the @p onewireDriver object
- * @param[in] txbuf         pointer to the buffer with data to be written
- * @param[in] txbytes       amount of data to be written
- * @param[in] pullup_time   how long strong pull up must be activated. Set
- *                          it to 0 if not needed.
  */
 void onewire_lld_write(onewireDriver *owp) {
   PWMDriver *pwmd;

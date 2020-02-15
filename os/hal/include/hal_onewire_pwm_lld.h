@@ -51,7 +51,7 @@
 /*===========================================================================*/
 
 /**
- * @brief   Driver configuration structure.
+ * @brief   LLD-specific configuration fields.
  */
 #define onewire_lld_config_fields                                             \
   /**                                                                         \
@@ -81,7 +81,13 @@
    */                                                                         \
   size_t                    sample_channel
 
+/**
+ * @brief   LLD-specific driver fields.
+ */
 #define onewire_lld_driver_fields                                             \
+  /**                                                                         \
+   * @brief Bit read callback, stored internally for use in IRQ handler.      \
+   */                                                                         \
   onewire_read_callback_t   read_cb;
 
 /*===========================================================================*/
@@ -91,8 +97,6 @@
 /*===========================================================================*/
 /* External declarations.                                                    */
 /*===========================================================================*/
-
-// extern onewireDriver OWD1;
 
 #ifdef __cplusplus
 extern "C" {

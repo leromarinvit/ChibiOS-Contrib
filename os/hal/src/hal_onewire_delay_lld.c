@@ -1,5 +1,6 @@
 /*
-    ChibiOS/RT - Copyright (C) 2014 Uladzimir Pylinsky aka barthess
+    ChibiOS/RT - Copyright (C) 2014 Uladzimir Pylinsky aka barthess,
+                               2020 Oliver Hanser
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -24,8 +25,8 @@
 //  */
 
 /**
- * @file    hal_onewire_pwm_lld.c
- * @brief   1-wire PWM Driver code.
+ * @file    hal_onewire_delay_lld.c
+ * @brief   1-wire Delay Driver code.
  *
  * @addtogroup onewire
  * @{
@@ -41,10 +42,6 @@
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
 /*===========================================================================*/
-
-/**
- * @brief     Local function declarations.
- */
 
 /*===========================================================================*/
 /* Driver exported variables.                                                */
@@ -86,8 +83,7 @@ static bool ow_read_bit(onewireDriver *owp) {
 
 /**
  * @brief     Write bit routine.
- * @details   Switch PWM channel to 'width' or 'narrow' pulse depending
- *            on value of bit need to be transmitted.
+ * @details   Write bit on GPIO line. Blocks for bit length + recovery time.
  *
  * @param[in] owp       pointer to the @p onewireDriver object
  * @param[in] bit       value to be written
@@ -111,10 +107,9 @@ static void ow_write_bit_I(onewireDriver *owp, bool bit) {
 /*===========================================================================*/
 
 /**
- * @brief   Configures and activates the 1-wire driver.
+ * @brief   Activates the 1-wire driver.
  *
  * @param[in] owp       pointer to the @p onewireDriver object
- * @param[in] config    pointer to the @p onewireConfig object
  *
  * @api
  */
@@ -123,7 +118,7 @@ void onewire_lld_start(onewireDriver *owp) {
 }
 
 /**
- * @brief   Deactivates the UART peripheral.
+ * @brief   Deactivates the 1-wire driver.
  *
  * @param[in] owp       pointer to the @p onewireDriver object
  *
@@ -163,11 +158,13 @@ bool onewire_lld_reset(onewireDriver *owp) {
 }
 
 /**
- * @brief     Read some bytes from slave device.
+ * @brief     Read data from slave device.
+ *            Generates read pulses and calls the callback function at the
+ *            sampling instant. This callback must do the actual read, and its
+ *            return value determines if and how the process continues.
  *
  * @param[in] owp       pointer to the @p onewireDriver object
- * @param[out] rxbuf    pointer to the buffer for read data
- * @param[in] rxbytes   amount of data to be received
+ * @param[in] cb        bit read callback
  */
 void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb) {
   onewire_read_cb_result_t result = ONEWIRE_READ_CB_ONE;
@@ -198,10 +195,6 @@ void onewire_lld_read(onewireDriver *owp, onewire_read_callback_t cb) {
  * @brief     Write some bytes to slave device.
  *
  * @param[in] owp           pointer to the @p onewireDriver object
- * @param[in] txbuf         pointer to the buffer with data to be written
- * @param[in] txbytes       amount of data to be written
- * @param[in] pullup_time   how long strong pull up must be activated. Set
- *                          it to 0 if not needed.
  */
 void onewire_lld_write(onewireDriver *owp) {
   ow_bus_active(owp);
@@ -223,6 +216,6 @@ void onewire_lld_write(onewireDriver *owp) {
 #include "synth_searchrom.c"
 #endif
 
-#endif /* HAL_USE_ONEWIRE && ONEWIRE_USE_PWM */
+#endif /* HAL_USE_ONEWIRE && ONEWIRE_USE_DELAY */
 
 /** @} */

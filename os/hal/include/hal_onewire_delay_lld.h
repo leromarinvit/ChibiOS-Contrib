@@ -43,10 +43,13 @@
 /* Driver data structures and types.                                         */
 /*===========================================================================*/
 
+/**
+ * @brief   Microsecond delay callback.
+ */
 typedef void (*onewire_udelay_t)(uint32_t delay);
 
 /**
- * @brief   Driver configuration structure.
+ * @brief   LLD-specific configuration fields.
  */
 #define onewire_lld_config_fields                                             \
   /**                                                                         \
@@ -62,8 +65,6 @@ typedef void (*onewire_udelay_t)(uint32_t delay);
 /* External declarations.                                                    */
 /*===========================================================================*/
 
-// extern onewireDriver OWD1;
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -76,9 +77,9 @@ extern "C" {
 }
 #endif
 
-#endif /* HAL_USE_ONEWIRE && ONEWIRE_USE_PWM */
+#endif /* HAL_USE_ONEWIRE && ONEWIRE_USE_DELAY */
 
-#endif /* HAL_ONEWIRE_PWM_LLD_H_ */
+#endif /* HAL_ONEWIRE_DELAY_LLD_H_ */
 
 /** @} */
 
