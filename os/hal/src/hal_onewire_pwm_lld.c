@@ -211,7 +211,7 @@ static void ow_reset_cb(PWMDriver *pwmp, onewireDriver *owp) {
 static void ow_write_bit_cb(PWMDriver *pwmp, onewireDriver *owp) {
 
   if (8 == owp->reg.bit) {
-    owp->buf++;
+    owp->txbuf++;
     owp->reg.bit = 0;
     owp->reg.bytes--;
 
@@ -241,7 +241,7 @@ static void ow_write_bit_cb(PWMDriver *pwmp, onewireDriver *owp) {
     return;
   }
 
-  ow_write_bit_I(owp, (*owp->buf >> owp->reg.bit) & 1);
+  ow_write_bit_I(owp, (*owp->txbuf >> owp->reg.bit) & 1);
   owp->reg.bit++;
 }
 

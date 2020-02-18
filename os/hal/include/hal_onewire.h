@@ -332,7 +332,10 @@ struct onewire_driver {
   /**
    * @brief   Pointer to I/O data buffer.
    */
-  uint8_t               *buf;
+  union {
+    uint8_t             *rxbuf;
+    const uint8_t       *txbuf;
+  };
 #if ONEWIRE_USE_SEARCH_ROM
   /**
    * @brief   Search ROM helper structure.
@@ -365,7 +368,7 @@ extern "C" {
   bool onewireReset(onewireDriver *owp);
   void onewireRead(onewireDriver *owp, uint8_t *rxbuf, size_t rxbytes);
   uint8_t onewireCRC(const uint8_t *buf, size_t len);
-  void onewireWrite(onewireDriver *owp, uint8_t *txbuf,
+  void onewireWrite(onewireDriver *owp, const uint8_t *txbuf,
                     size_t txbytes, systime_t pullup_time);
 #if ONEWIRE_USE_SEARCH_ROM
   size_t onewireSearchRom(onewireDriver *owp,

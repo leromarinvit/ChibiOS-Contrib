@@ -154,11 +154,11 @@ static ioline_t ow_read_bit(onewireDriver *owp) {
  */
 static onewire_read_cb_result_t ow_read_bit_cb(onewireDriver *owp) {
 
-  *owp->buf |= ow_read_bit(owp) << owp->reg.bit;
+  *owp->rxbuf |= ow_read_bit(owp) << owp->reg.bit;
   owp->reg.bit++;
   if (8 == owp->reg.bit) {
     owp->reg.bit = 0;
-    owp->buf++;
+    owp->rxbuf++;
     owp->reg.bytes--;
     if (0 == owp->reg.bytes)
       return ONEWIRE_READ_CB_END;
@@ -393,7 +393,7 @@ void onewireObjectInit(onewireDriver *owp) {
   owp->reg.bytes = 0;
   owp->reg.bit = 0;
   owp->reg.final_timeslot = false;
-  owp->buf = NULL;
+  owp->txbuf = NULL;
 
 #if ONEWIRE_USE_STRONG_PULLUP
   owp->reg.need_pullup = false;
@@ -476,7 +476,7 @@ void onewireRead(onewireDriver *owp, uint8_t *rxbuf, size_t rxbytes) {
 
   owp->reg.bit = 0;
   owp->reg.final_timeslot = false;
-  owp->buf = rxbuf;
+  owp->rxbuf = rxbuf;
   owp->reg.bytes = rxbytes;
 
   onewire_lld_read(owp, ow_read_bit_cb);
@@ -491,7 +491,7 @@ void onewireRead(onewireDriver *owp, uint8_t *rxbuf, size_t rxbytes) {
  * @param[in] pullup_time   how long strong pull up must be activated. Set
  *                          it to 0 if not needed.
  */
-void onewireWrite(onewireDriver *owp, uint8_t *txbuf,
+void onewireWrite(onewireDriver *owp, const uint8_t *txbuf,
                   size_t txbytes, systime_t pullup_time) {
 
   osalDbgCheck((NULL != owp) && (NULL != txbuf));
@@ -502,7 +502,7 @@ void onewireWrite(onewireDriver *owp, uint8_t *txbuf,
       "Non zero time is valid only when strong pull enabled");
 #endif
 
-  owp->buf = txbuf;
+  owp->txbuf = txbuf;
   owp->reg.bit = 0;
   owp->reg.final_timeslot = false;
   owp->reg.bytes = txbytes;

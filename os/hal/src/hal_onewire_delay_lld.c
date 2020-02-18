@@ -201,8 +201,8 @@ void onewire_lld_write(onewireDriver *owp) {
 
   while (owp->reg.bytes) {
     for (size_t i = 0; i < 8; i++)
-      ow_write_bit_I(owp, (*owp->buf >> i) & 1);
-    owp->buf++;
+      ow_write_bit_I(owp, (*owp->txbuf >> i) & 1);
+    owp->txbuf++;
     owp->reg.bytes--;
   }
 
